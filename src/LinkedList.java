@@ -28,8 +28,14 @@ public class LinkedList<T extends Comparable<T>> implements List<T> {
             Node<T> addToList = new Node<>(element,null);
             curr.setNext(addToList);
             lengthOfList++; // increment length of list
-            // TODO: if element breaks order, then set isSorted to false
-            isSorted = false; // TODO: broken for now
+
+            // if element breaks order, then set isSorted to false
+//            if (isSorted) {
+//                if ( curr.getData().compareTo(element) > 0 ) { // if the index 3 is bigger than index 4,
+//                    isSorted = false; // the sort is broken
+//                }
+//            }
+            isSorted = false;
             return true;
 
         }
@@ -44,14 +50,14 @@ public class LinkedList<T extends Comparable<T>> implements List<T> {
             }
 
             Node<T> currNode = prevNode.getNext(); // ephemeral
-//            Node<T> restOfNodes = new Node<T>(currNode.getData(),currNode.getNext()); // unchanging
             Node<T> addedNode = new Node<T>(element, currNode); // new node = (element, null)
 
             prevNode.setNext(addedNode);
 
             lengthOfList++;
-            // TODO: if element breaks order, then set isSorted to false
-            isSorted = false; // TODO: broken for now
+
+            // if element breaks order, then set isSorted to false
+            checkIsSorted();
             return true;
         }
         return false; // else it's null, or out of bounds
@@ -83,30 +89,30 @@ public class LinkedList<T extends Comparable<T>> implements List<T> {
 
     @Override
     public int indexOf(T element) { // return 1st index of element in list.
-        if (element == null) { return -1; }
-        if (isSorted) { // If isSorted is true, uses the ordering of the list to increase the efficiency of the search.
-            // TODO: if sorted, and go past value, then obv not in and can exit/return early
-            for (int i = 0; i < lengthOfList-1; i++) {
-                if ( this.get(i).compareTo(element) > 0 ) { // if f, but looking for c (in sorted list),
-                    return -1; // then missed your (element) exit
-                } else if ( this.get(i).compareTo(element) == 0 ) {
-                    return i;
-                }
-            }
-            // if you go through whole list and cannot find element, return -1
+        if (element == null) {
             return -1;
-        } else { // notSorted
+        }
+
+        if (isSorted) { // If isSorted is true, uses the ordering of the list to increase the efficiency of the search.
             for (int i = 0; i < lengthOfList-1; i++) {
+                if ( this.get(i).compareTo(element) > 0 ) { // if our list is at F, but looking for C (in sorted list),
+                    return -1; // then we must've missed the element
+                }
                 if ( this.get(i).compareTo(element) == 0 ) {
                     return i;
                 }
             }
+            return -1; // nothing found
+        } else { // isSorted == false
+            Node<T> firstNode = dummyNode.getNext(); // use curr to check and compare all nodes in your list
+            for (int i = 0; i < lengthOfList; i++) { // go through ALL nodes in your list
+                if (firstNode.getData().equals(element)) { // if the elements are equal, return index
+                    return i;
+                }
+                firstNode = firstNode.getNext();
+            }
+            return -1; // If element not found in the list, return -1.
         }
-
-
-        // If element not found in the list, return -1.
-        // If isSorted is true, uses the ordering of the list to increase the efficiency of the search.
-        return 0;
     }
 
     @Override
@@ -171,6 +177,7 @@ public class LinkedList<T extends Comparable<T>> implements List<T> {
 
         // TODO: MUST is list still sorted after removal, update isSorted accordingly.
         lengthOfList--;
+        checkIsSorted();
         return currNode.getData(); // return removed element
 
     }
@@ -182,31 +189,66 @@ public class LinkedList<T extends Comparable<T>> implements List<T> {
 
     @Override
     public void reverse() {
+        Node<T> A = dummyNode.getNext();
+        Node<T> P =  dummyNode.getNext();
+        Node<T> B = null;
+        while (P.getNext() != null){
+            A = P.getNext();
+            P.setNext(B);
+            B = P;
+            P = A;
+        }
+        P.setNext(B);
+        dummyNode.setNext(A);
 
     }
 
     @Override
     public void exclusiveOr(List<T> otherList) {
-        Node
+
     }
 
     @Override
     public T getMin() {
         // TODO: if it's already sorted, get first value after dummy
         // go thru all values and find least
-        return null;
+        if (lengthOfList == 0) // if the list is empty
+            return null;
+        else if (lengthOfList == 1)
+            return dummyNode.getNext().getData();
+        else{
+            if (! isSorted){
+                sort();
+                return dummyNode.getNext().getData();}
+            else return dummyNode.getNext().getData();
+        }
     }
 
     @Override
     public T getMax() {
         // TODO: optimization is knowing if it's sorted, you can link through to last value without stopping
         //  else go through all the values and find the largest (compare to)
-        return null;
+        if (lengthOfList == 0) // if the list is empty
+            return null;
+        else if (lengthOfList == 1)
+            return dummyNode.getNext().getData();
+        else {
+            if (! isSorted) {
+                sort();
+                reverse();
+                return dummyNode.getNext().getData();
+            }
+            else {
+                reverse();
+                return dummyNode.getNext().getData();
+            }
+
+        }
     }
 
     @Override
     public boolean isSorted() {
-        return false;
+        return isSorted;
     }
 
     @Override
@@ -226,6 +268,25 @@ public class LinkedList<T extends Comparable<T>> implements List<T> {
         }
 
         return myString;
+    }
+
+    public void checkIsSorted(){ // helper method: check if the list is sorted
+        if (lengthOfList == 0 || lengthOfList == -1){
+            isSorted = true;
+        }
+        else{
+            Node<T> ptrA = dummyNode.getNext();
+            Node<T> ptrB = dummyNode.getNext().getNext();
+            while (ptrB != null){
+                if (ptrA.getData().compareTo(ptrB.getData()) > 0){
+                    isSorted = false;
+                    return;
+                }
+                ptrA = ptrA.getNext();
+                ptrB = ptrB.getNext();
+            }
+            isSorted = true;
+        }
     }
 
 }
